@@ -1,0 +1,79 @@
+<html>
+
+<head>
+    <style>
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .spinner {
+            animation: spin 1s infinite linear paused;
+        }
+
+        .spinner.active {
+            animation-play-state: running;
+        }
+    </style>
+</head>
+
+<body>
+    <button id="start">Start</button>
+    <button id="unregister">Unregister Service Worker</button>
+    <div>
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 50 50" class="spinner"><circle cx="25" cy="25" r="20" fill="none" stroke="#6366f1" stroke-width="5" stroke-linecap="round" stroke-dasharray="90 150" stroke-dashoffset="0"/></svg>
+    </div>
+    <div id="result"></div>
+
+    <script>
+        const getServiceWorker = async (scriptURL, options) => {
+            if ("serviceWorker" in navigator) {
+                try {
+                    let registration = await navigator.serviceWorker.getRegistration();
+                    if (!registration) {
+                        registration = await navigator.serviceWorker.register(scriptURL, options);
+                        await navigator.serviceWorker.ready;
+                    }
+                    return {
+                        registration: registration,
+                        container: navigator.serviceWorker,
+                        controller: registration.active,
+                        addEventListener: navigator.serviceWorker.addEventListener.bind(navigator.serviceWorker),
+                        postMessage: registration.active.postMessage.bind(registration.active)
+                    };
+                } catch (error) {
+                    console.error(`Registration failed with ${error}`);
+                }
+            }
+        }
+
+        (async () => {
+            const serviceWorker = await getServiceWorker("./thread.js", { scope: "./" });
+            if (!serviceWorker) {
+                return;
+            }
+            console.log(serviceWorker);
+
+            serviceWorker.addEventListener('message', evt => {
+                if (evt.data.type === 'result') {
+                    document.getElementById('result').innerHTML = evt.data.result + (evt.data.cached ? ' (from cache)' : '');
+                    document.querySelector('.spinner').classList.remove('active');
+                }
+            });
+
+            document.getElementById('start').addEventListener('click', () => {
+                document.querySelector('.spinner').classList.add('active');
+                serviceWorker.postMessage({ type: 'recalculate', timeout: 5000 });
+            });
+
+            document.getElementById('unregister').addEventListener('click', async () => {
+                await serviceWorker.registration.unregister();
+                document.getElementById('result').innerHTML = 'Service Worker unregistered';
+            });
+
+            serviceWorker.postMessage({ type: 'getCachedResult', timeout: 5000 });
+        })();
+    </script>
+</body>
+
+</html>
