@@ -1,0 +1,37 @@
+<html>
+
+<head>
+    <title>My Select</title>
+</head>
+
+<body>
+    <script>
+        const components = ['my-select'];
+
+        const onLoad = (evt) => {
+            console.log(`компонент загружен`);
+        };
+
+        const onError = (err) => {
+            const script = err.target;
+        };
+
+        components.forEach(component => {
+            const script = document.createElement('script');
+            script.src = `./${component}.js`;
+            script.dataset.name = component;
+            script.addEventListener('load', onLoad);
+            script.addEventListener('error', onError);
+            document.body.append(script);
+        });
+    </script>
+
+
+    <my-select>
+        <option value="opt1">Option 1</option>
+        <option value="opt2">Option 2</option>
+        <option value="opt3">Option 3</option>
+    </my-select>
+</body>
+
+</html>
