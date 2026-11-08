@@ -1,0 +1,57 @@
+<html>
+
+<head>
+    <style>
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .spinner {
+            animation: spin 1s infinite linear paused;
+        }
+
+        .spinner.active {
+            animation-play-state: running;
+        }
+    </style>
+</head>
+
+<body>
+    <button id="start">Start kill proc</button>
+    <button id="start-reuse">Start reuse</button>
+    <div>
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 50 50" class="spinner"><circle cx="25" cy="25" r="20" fill="none" stroke="#6366f1" stroke-width="5" stroke-linecap="round" stroke-dasharray="90 150" stroke-dashoffset="0"/></svg>
+    </div>
+    <div id="result"></div>
+
+    <script>
+        const bc = new BroadcastChannel("test_channel");
+        bc.onmessage = (evt) => {
+            document.getElementById('result').innerHTML = evt.data;
+            document.querySelector('.spinner').classList.remove('active');
+        };
+
+        document.getElementById('start').addEventListener('click', () => {
+            if (window.Worker) {
+                document.querySelector('.spinner').classList.add('active');
+                const thread = new Worker("./thread.js");
+                thread.onmessage = () => {
+                    thread.terminate();
+                };
+                thread.postMessage('');
+            }
+        });
+
+        let reusableThread = null;
+        document.getElementById('start-reuse').addEventListener('click', () => {
+            document.querySelector('.spinner').classList.add('active');
+            if (!reusableThread) {
+                reusableThread = new Worker("./thread.js");
+            }
+            reusableThread.postMessage('');
+        });
+    </script>
+</body>
+
+</html>
