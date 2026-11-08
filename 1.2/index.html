@@ -1,15 +1,27 @@
 <html>
 <head>
-    <title>My Input</title>
+    <title>My Select</title>
 </head>
 <body>
     <script>
-        const components = ['my-input'];
+        const components = ['my-select'];
+
+        const options = [
+            { value: '1', text: 'Первый пункт' },
+            { value: '2', text: 'Второй пункт' },
+            { value: '3', text: 'Третий пункт' },
+        ];
 
         const onLoad = (evt) => {
             const script = evt.target;
             const name = script.dataset.name;
             const element = document.createElement(name);
+            options.forEach(option => {
+                const optionElement = document.createElement('option');
+                optionElement.value = option.value;
+                optionElement.textContent = option.text;
+                element.append(optionElement);
+            });
             document.body.append(element);
         };
 
